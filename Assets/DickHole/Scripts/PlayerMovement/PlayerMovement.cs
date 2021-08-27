@@ -6,11 +6,11 @@ using Photon.Pun;
 public class PlayerMovement : MonoBehaviour
 {
     Rigidbody2D rb;
-
     float horizontal;
     float vertical;
-
     private PhotonView view;
+
+    private PlayerAnimatorController playerAnimatorController;
 
     public float runSpeed = 350f;
 
@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerAnimatorController = GetComponentInChildren<PlayerAnimatorController>();
         /* view = GetComponent<PhotonView>(); */
     }
 
@@ -28,12 +29,26 @@ public class PlayerMovement : MonoBehaviour
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
             jump();
+            Attack();
 /*         } */
     }
     void FixedUpdate()
     {
         rb.velocity = new Vector2(horizontal * runSpeed * Time.deltaTime, rb.velocity.y);
-        
+        if(rb.velocity.x != 0 && itsgrounded){
+            playerAnimatorController.PlayerInMove(true);
+        }else{
+            playerAnimatorController.PlayerInMove(false);
+        }  
+        RotatePlayer();     
+    }
+
+    private void RotatePlayer(){
+        if(rb.velocity.x < 0){
+            transform.eulerAngles = new Vector3(0,0,0);
+        }else if(rb.velocity.x > 0){
+            transform.eulerAngles = new Vector3(0,180,0);
+        }
     }
 
 
@@ -41,6 +56,17 @@ public class PlayerMovement : MonoBehaviour
     float jumpTimeCounter, airtimecounter;
     public bool itsgrounded, stoppedJumping;
     RaycastHit groundhit;
+
+    public void Itsgrounded(bool _grounded){
+        itsgrounded = _grounded;
+        playerAnimatorController.Falling(_grounded);
+    }
+
+    private void Attack(){
+        if (Input.GetKeyDown(KeyCode.F)){
+            playerAnimatorController.Attack();
+        }
+    }
     void jump()
     {
         Debug.DrawRay(transform.position, Vector3.down * 1.3f, Color.blue,3);
@@ -59,6 +85,7 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             itsgrounded = false;
             stoppedJumping = false;
+            playerAnimatorController.Jump();
         }
         if (Input.GetKey(KeyCode.W) && stoppedJumping == false)
         {
