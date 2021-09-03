@@ -2,12 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
     Rigidbody2D rb;
     float horizontal;
     float vertical;
+
+    bool jumping;
     private PhotonView view;
 
     private PlayerAnimatorController playerAnimatorController;
@@ -26,10 +29,7 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
 /*         if(view.IsMine){ */
-            horizontal = Input.GetAxisRaw("Horizontal");
-            vertical = Input.GetAxisRaw("Vertical");
             jump();
-            Attack();
 /*         } */
     }
     void FixedUpdate()
@@ -62,8 +62,8 @@ public class PlayerMovement : MonoBehaviour
         playerAnimatorController.Falling(_grounded);
     }
 
-    private void Attack(){
-        if (Input.GetKeyDown(KeyCode.F)){
+    public void OnAttack(InputAction.CallbackContext context){
+        if(context.performed){
             playerAnimatorController.Attack();
         }
     }
@@ -78,7 +78,7 @@ public class PlayerMovement : MonoBehaviour
         {stoppedJumping = true;}
 
         //keydown
-        if (Input.GetKeyDown(KeyCode.W) && itsgrounded == true)
+        if (jumping && itsgrounded == true)
         {
             airtimecounter = airtime;
             jumpTimeCounter = jumpTime;
@@ -87,7 +87,7 @@ public class PlayerMovement : MonoBehaviour
             stoppedJumping = false;
             playerAnimatorController.Jump();
         }
-        if (Input.GetKey(KeyCode.W) && stoppedJumping == false)
+        if (jumping && stoppedJumping == false)
         {
             if (jumpTimeCounter > 0)
             {
@@ -104,18 +104,22 @@ public class PlayerMovement : MonoBehaviour
                 }
             }
         }
-        if (Input.GetKeyUp(KeyCode.W))
+        if (jumping == false)
         {
             airtimecounter = airtime;
             jumpTimeCounter = jumpTime;
             stoppedJumping = true;
         }
-        if (Input.GetKey(KeyCode.W) == false)
-        {
-            airtimecounter = airtime;
-            jumpTimeCounter = jumpTime;
-            stoppedJumping = true;
-        }
+    }
+
+
+    public void OnMovement(InputAction.CallbackContext context){
+        horizontal = context.ReadValue<Vector2>().x;
+        vertical = context.ReadValue<Vector2>().y;
+    }
+
+    public void OnJump(InputAction.CallbackContext context){
+        jumping = context.performed;
     }
 
 }
