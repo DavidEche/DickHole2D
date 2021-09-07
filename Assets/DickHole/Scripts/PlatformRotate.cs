@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class PlatformRotate : MonoBehaviour
 {
-    [SerializeField] private float speed = 2f;
+    [SerializeField] public float speed = 2f;
     void Update()
     {
-        transform.Rotate(0,0,360 *speed * Time.deltaTime);
+        //transform.Rotate(0,0,360 *speed * Time.deltaTime);
+        transform.Translate(Vector3.right * speed * Time.deltaTime);
     }
 }
