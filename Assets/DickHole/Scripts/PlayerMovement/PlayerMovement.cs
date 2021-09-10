@@ -6,6 +6,16 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
+    //Attack Var
+    public float hitStunDelay;
+    public bool hitStun;
+    public PlayerAttack playerAttack;
+    public float attackDelay;
+    public float endAttackDelay;
+    public bool canAttack = true;
+
+
+
     Rigidbody2D rb;
     float horizontal;
     float vertical;
@@ -34,13 +44,15 @@ public class PlayerMovement : MonoBehaviour
     }
     void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontal * runSpeed * Time.deltaTime, rb.velocity.y);
-        if(rb.velocity.x != 0 && itsgrounded){
-            playerAnimatorController.PlayerInMove(true);
-        }else{
-            playerAnimatorController.PlayerInMove(false);
-        }  
-        RotatePlayer();     
+        if(!hitStun){
+            rb.velocity = new Vector2(horizontal * runSpeed * Time.deltaTime, rb.velocity.y);
+            if(rb.velocity.x != 0 && itsgrounded){
+                playerAnimatorController.PlayerInMove(true);
+            }else{
+                playerAnimatorController.PlayerInMove(false);
+            }  
+            RotatePlayer();     
+        }
     }
 
     private void RotatePlayer(){
@@ -63,9 +75,21 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public void OnAttack(InputAction.CallbackContext context){
-        if(context.performed){
+        if(context.performed && canAttack){
+            canAttack = false;
             playerAnimatorController.Attack();
+            playerAttack.gameObject.SetActive(true);
+            Invoke("EndAttack", endAttackDelay);
         }
+    }
+
+    private void EndAttack(){
+        playerAttack.gameObject.SetActive(false);
+        Invoke("ReturnCanAttack", attackDelay);
+    }
+
+    private void ReturnCanAttack(){
+        canAttack = true;
     }
     void jump()
     {
@@ -112,6 +136,17 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void TakeDamage(Vector3 originPos,float force){
+        hitStun = true;
+        Debug.Log("TakeDamage");
+        playerAnimatorController.PlayerInMove(false);
+        rb.AddForce((originPos - transform.position) * -force,ForceMode2D.Impulse);
+        Invoke("EndHitStun",hitStunDelay);
+    }
+
+    private void EndHitStun(){
+        hitStun = false;
+    }
 
     public void OnMovement(InputAction.CallbackContext context){
         horizontal = context.ReadValue<Vector2>().x;
