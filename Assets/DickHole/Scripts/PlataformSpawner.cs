@@ -8,7 +8,7 @@ public class PlataformSpawner : MonoBehaviour
     [SerializeField] GameObject platformParent;
     public float m_SpawnRate;
     public float m_PlatformSpeed;
-    private bool m_CanSpawn=true;
+    public bool m_CanSpawn=true;
     
 
     private void Start()
@@ -35,7 +35,7 @@ public class PlataformSpawner : MonoBehaviour
             rate--;
 
         }
-        if (rate == 0)
+        if (rate == 0 && m_CanSpawn)
         {
             rate = m_SpawnRate;
             StartSpawn();
